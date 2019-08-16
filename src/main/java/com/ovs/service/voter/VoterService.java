@@ -2,18 +2,11 @@ package com.ovs.service.voter;
 
 import java.util.List;
 
-import com.ovs.model.Voter;
+import com.ovs.dao.EmployeeResponse;
 
 public interface VoterService {
 
-	long add_voter(Voter voter);
+	List<EmployeeResponse> get_employees();
 	
-	Voter get_voter(int id);
-	
-	List<Voter> get_voter_all();
-	
-	void update_voter(int id,Voter voter);
-	
-	void delete_voter(int id);
-	List<Voter> get_active_voters();
+	List<EmployeeResponse> get_students();
 }

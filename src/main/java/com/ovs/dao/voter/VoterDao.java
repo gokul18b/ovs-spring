@@ -2,18 +2,11 @@ package com.ovs.dao.voter;
 
 import java.util.List;
 
-import com.ovs.model.Voter;
+import com.ovs.dao.EmployeeResponse;
 
 public interface VoterDao {
-	long add_voter(Voter voter);
+	List<EmployeeResponse> get_employees();
+	List<EmployeeResponse> get_students();
+	
 
-	Voter get_voter(int id);
-
-	List<Voter> get_all();
-	
-	void update_voter(int id,Voter voter);
-	
-	void delete_voter(int id);
-	
-	List<Voter> get_active_voters();
 }

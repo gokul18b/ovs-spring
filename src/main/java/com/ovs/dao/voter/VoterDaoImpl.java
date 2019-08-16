@@ -1,21 +1,26 @@
 package com.ovs.dao.voter;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Tuple;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import com.ovs.model.Voter;
+import com.ovs.dao.EmployeeResponse;
+import com.ovs.model.Student;
+import com.ovs.model.StudentDetails;
 
 @Repository
 public class VoterDaoImpl implements VoterDao {
@@ -24,58 +29,53 @@ public class VoterDaoImpl implements VoterDao {
 	SessionFactory sessionFactory;
 
 	@Override
-	public long add_voter(Voter voter) {
-		sessionFactory.getCurrentSession().save(voter);
-		return voter.getId();
+	public List<EmployeeResponse> get_employees() {
+		List<EmployeeResponse> employeeResponsesList = new ArrayList<EmployeeResponse>();
+		Session em = sessionFactory.getCurrentSession();
+
+		String hql = "SELECT emp.name, dept.name FROM Employee emp JOIN Department dept ON dept.id=emp.did";
+		List<Object[]> results = em.createQuery(hql).getResultList();
+		for (Object[] result : results) {
+			System.out.println(result[0] + " " + result[1]);
+			String name = (String) result[0];
+			String deptname = (String) result[1];
+			employeeResponsesList.add(new EmployeeResponse(name, deptname));
+		}
+
+		return employeeResponsesList;
 	}
 
 	@Override
-	public Voter get_voter(int id) {
-		// TODO Auto-generated method stub
-		return sessionFactory.getCurrentSession().get(Voter.class, id);
-	}
+	public List<EmployeeResponse> get_students() {
+//		EntityManager entityManagerFactory = sessionFactory.createEntityManager();
+//		CriteriaBuilder builder = entityManagerFactory.getCriteriaBuilder();
+//		CriteriaQuery<Student> query = builder.createQuery(Student.class);
+//		Root<Student> fromStudent = query.from(Student.class);
+//		Join<Student, StudentDetails> joinStudentDetails = fromStudent.join("studentDetails");
+		
+		CriteriaBuilder builder = sessionFactory.createEntityManager().getCriteriaBuilder();
+	    CriteriaQuery<Tuple> criteria = builder.createTupleQuery();
+	    Root<Student> entityARoot= criteria.from(Student.class);
+	    Root<StudentDetails> entityBRoot = criteria.from(StudentDetails.class);
+	    
+	    List<Predicate> predicates = new ArrayList<>();
+	    
+	    List<Predicate> andPredicates = new ArrayList<>();
+	    andPredicates.add(builder.equal(entityARoot.get("id"), entityBRoot.get("id")));
+	    andPredicates.add(builder.and(predicates.toArray(new Predicate[0])));
+	    
+	    criteria.multiselect(entityARoot, entityBRoot);
+	    criteria.where(andPredicates.toArray(new Predicate[0]));
+	    
+	    
+	    TypedQuery<Tuple> query = sessionFactory.createEntityManager().createQuery(criteria);
 
-	@Override
-	public List<Voter> get_all() {
-		// TODO Auto-generated method stub
-		Session session = sessionFactory.getCurrentSession();
-		CriteriaBuilder builder = session.getCriteriaBuilder();
-		CriteriaQuery<Voter> cq = builder.createQuery(Voter.class);
-		Root<Voter> root = cq.from(Voter.class);
-		cq.select(root);
-		Query<Voter> query = session.createQuery(cq);
-		return query.getResultList();
-
-	}
-
-	@Override
-	public void update_voter(int id, Voter voter) {
-		// TODO Auto-generated method stub
-		Session session = sessionFactory.getCurrentSession();
-		Voter old_voter = session.find(Voter.class, id);
-		old_voter.setAadharNo(voter.getAadharNo());
-		old_voter.setAddress(voter.getAddress());
-		old_voter.setFirstName(voter.getFirstName());
-		old_voter.setLastName(voter.getLastName());
-		old_voter.setMobileNumber(voter.getMobileNumber());
-		session.update(old_voter);
-	}
-
-	@Override
-	public void delete_voter(int id) {
-		Session session = sessionFactory.getCurrentSession();
-		Voter voter = session.find(Voter.class, id);
-		session.delete(voter);
-	}
-
-	@Override
-	public List<Voter> get_active_voters() {
-		Session session = sessionFactory.getCurrentSession();
-		Criteria criteria = session.createCriteria(Voter.class);
-		Criterion criterion = Restrictions.eq("status", 1);
-		criteria.add(criterion);
-		List<Voter> a = criteria.list();
-		return a;
+	    List<Tuple> result = query.getResultList();
+	    
+	    
+	    
+		
+		return null;
 	}
 
 }
